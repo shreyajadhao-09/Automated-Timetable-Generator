@@ -1,0 +1,287 @@
+CREATE TABLE `branches` (
+  `branchid` int NOT NULL,
+  `branchname` varchar(30) DEFAULT NULL,
+  PRIMARY KEY (`branchid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE `courses` (
+  `courseId` int NOT NULL,
+  `courseName` varchar(200) DEFAULT NULL,
+  `branch` varchar(200) DEFAULT NULL,
+  `noOfSemesters` int DEFAULT NULL,
+  PRIMARY KEY (`courseId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE `documents` (
+  `docid` int NOT NULL,
+  `title` varchar(200) DEFAULT NULL,
+  `docDesc` varchar(200) DEFAULT NULL,
+  `dt` varchar(200) DEFAULT NULL,
+  `tm` varchar(200) DEFAULT NULL,
+  `docpath` varchar(200) DEFAULT NULL,
+  `userid` varchar(200) DEFAULT NULL,
+  `subName` varchar(200) DEFAULT NULL,
+  `branch` varchar(200) DEFAULT NULL,
+  `sem` int DEFAULT NULL,
+  PRIMARY KEY (`docid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE `loggedinusers` (
+  `id` int NOT NULL,
+  `userid` varchar(200) DEFAULT NULL,
+  `utype` varchar(200) DEFAULT NULL,
+  `dt` varchar(200) DEFAULT NULL,
+  `tm` varchar(200) DEFAULT NULL,
+  `sts` varchar(200) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE `preference_submission` (
+  `pid` int NOT NULL,
+  `fromdt` varchar(200) DEFAULT NULL,
+  `todt` varchar(200) DEFAULT NULL,
+  `intake` int DEFAULT NULL,
+  PRIMARY KEY (`pid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+
+CREATE TABLE `staffpersonal` (
+  `userid` varchar(30) NOT NULL,
+  `usernm` varchar(40) DEFAULT NULL,
+  `usertype` varchar(30) DEFAULT NULL,
+  `branch` varchar(30) DEFAULT NULL,
+  `mobileno` varchar(10) DEFAULT NULL,
+  `emailid` varchar(30) DEFAULT NULL,
+  `dob` varchar(30) DEFAULT NULL,
+  `gender` varchar(30) DEFAULT NULL,
+  `userstatus` varchar(30) DEFAULT NULL,
+  `photo` varchar(200) DEFAULT NULL,
+  PRIMARY KEY (`userid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE `stud_sub_allocation` (
+  `sid` int NOT NULL,
+  `userid` varchar(200) DEFAULT NULL,
+  `username` varchar(200) DEFAULT NULL,
+  `subjectName` varchar(200) DEFAULT NULL,
+  `branch` varchar(200) DEFAULT NULL,
+  `course` varchar(200) DEFAULT NULL,
+  `sem` int DEFAULT NULL,
+  `dt` varchar(200) DEFAULT NULL,
+  `pref1` varchar(200) DEFAULT NULL,
+  `pref2` varchar(200) DEFAULT NULL,
+  `pref3` varchar(200) DEFAULT NULL,
+  PRIMARY KEY (`sid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+
+CREATE TABLE `studentpersonal` (
+  `userid` varchar(30) NOT NULL,
+  `usernm` varchar(40) DEFAULT NULL,
+  `usertype` varchar(30) DEFAULT NULL,
+  `branch` varchar(30) DEFAULT NULL,
+  `semester` varchar(30) DEFAULT NULL,
+  `mobileno` varchar(10) DEFAULT NULL,
+  `emailid` varchar(30) DEFAULT NULL,
+  `dob` varchar(30) DEFAULT NULL,
+  `gender` varchar(30) DEFAULT NULL,
+  `userstatus` varchar(30) DEFAULT NULL,
+  `photo` varchar(200) DEFAULT NULL,
+  `course` varchar(200) DEFAULT NULL,
+  PRIMARY KEY (`userid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE `suballocation` (
+  `allocationId` int NOT NULL,
+  `subId` int DEFAULT NULL,
+  `subjectName` varchar(200) DEFAULT NULL,
+  `staffUserid` varchar(200) DEFAULT NULL,
+  `dt` varchar(200) DEFAULT NULL,
+  `branch` varchar(200) DEFAULT NULL,
+  `courseId` int DEFAULT NULL,
+  `semester` int DEFAULT NULL,
+  PRIMARY KEY (`allocationId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE `subjects` (
+  `subId` int NOT NULL,
+  `subName` varchar(200) DEFAULT NULL,
+  `semester` int DEFAULT NULL,
+  `branch` varchar(200) DEFAULT NULL,
+  `course` varchar(200) DEFAULT NULL,
+  PRIMARY KEY (`subId`),
+  UNIQUE KEY `subName` (`subName`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE `users` (
+  `userid` varchar(30) NOT NULL,
+  `usernm` varchar(40) DEFAULT NULL,
+  `pswd` varchar(30) DEFAULT NULL,
+  `usertype` varchar(30) DEFAULT NULL,
+  `userstatus` varchar(30) DEFAULT NULL,
+  `branch` varchar(30) DEFAULT NULL,
+  PRIMARY KEY (`userid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
+
+
+
+
+DELIMITER $$
+CREATE    PROCEDURE `changePassword`(in userid1 varchar(200),in pass1 varchar(200))
+BEGIN
+update users set pswd=pass1 where userid=userid1;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE    PROCEDURE `chkPass`(in userid1 varchar(200),in pass1 varchar(200))
+BEGIN
+select * from users where userid=userid1 and pswd=pass1;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE    PROCEDURE `getAllottedSubjects`(in branch1 varchar(200),in courseId1 integer,in semester1 integer,in userid1 varchar(200))
+begin
+declare courseNm varchar(200);
+set courseNm=(select courseName from courses where courseId=courseId1);
+ select s.* from subjects s inner join suballocation a on s.subId=a.subId and a.staffUserid=userid1  where s.course=courseNm  and s.branch=branch1 and s.semester=semester1;
+end$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE    PROCEDURE `getAllottedSubjectsStud`(in branch1 varchar(200),in userid1 varchar(200),in semester1 integer)
+begin
+declare courseNm varchar(200);
+set courseNm=(select course from studentpersonal where userid=userid1);
+ select s.*,(select count(*) from stud_sub_allocation where subjectName=s.subName) as cnt from subjects s   where s.course=courseNm  and s.branch=branch1 and s.semester=semester1;
+end$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE    PROCEDURE `getBranches`()
+begin
+ select * from branches;
+end$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE    PROCEDURE `getCourses`(in branch1 varchar(200))
+begin
+ select * from courses where branch=branch1;
+end$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE    PROCEDURE `getlastSeen`(in userid1 varchar(200))
+begin
+select dt,tm from loggedInUsers where userid=userid1 order by id desc limit 1;
+end$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE    PROCEDURE `getMaxIdBranches`()
+begin
+select ifnull(max(branchid),1000) as mxid from branches ;
+end$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE    PROCEDURE `getOnlineUsers`()
+begin
+ select l.userid,l.utype,u.usernm as username from loggedinusers l inner join users u on l.userid=u.userid and l.sts='active';
+end$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE    PROCEDURE `getSemNo`(in courseId1 integer)
+begin
+ select noOfSemesters from courses where courseId=courseId1;
+end$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE    PROCEDURE `getSubjects`(in branch1 varchar(200),in courseId1 integer,in semester1 integer)
+begin
+declare courseNm varchar(200);
+set courseNm=(select courseName from courses where courseId=courseId1);
+ select * from subjects where course=courseNm  and branch=branch1 and semester=semester1 ;
+end$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE    PROCEDURE `getSubjectsAllottedStaff`(in userid1 varchar(200))
+begin
+
+select s.*,c.courseName from suballocation s inner join courses c on s.courseId=c.courseId where s.staffUserid=userid1;
+end$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE    PROCEDURE `insertCourses`(in courseName1 varchar(200),in branch1 varchar(200),in semNo integer)
+begin
+declare mxid integer;
+set mxid=(select ifnull(max(courseId),1000) from courses);
+set mxid=mxid+1;
+insert into courses values(mxid,courseName1,branch1,semNo);  
+end$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE    PROCEDURE `insertLoginLog`(in userid1 varchar(200),in utype1 varchar(200),in loginTime1 varchar(200), in loginDt1 varchar(200))
+begin
+declare mxid integer;
+set mxid=(select ifnull(max(id),1000) from loggedinusers);
+set mxid=mxid+1;
+insert into loggedinusers values(mxid,userid1,utype1,loginTime1,loginDt1,'active'); 
+update loggedinusers set sts='loggedOut' where userid=userid1 and id<>mxid;
+end$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE    PROCEDURE `insertStudSubAllocation`( in uid varchar(200),in unm varchar(200),
+in sub varchar(200),br varchar(200),course1 varchar(200),sem1 integer,in dt1 varchar(200),in pref11 varchar(200),in pref22 varchar(200),in pref33 varchar(200))
+begin   
+declare mxid integer; 
+set mxid=(select ifnull(max(sid),1000)+1 as mxid from stud_sub_allocation );
+insert into stud_sub_allocation values(mxid,uid,unm,sub,br,course1,sem1,dt1,pref11,pref22,pref33);
+end$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE    PROCEDURE `insertSubjectAllocation`(in subId1 integer,in userid varchar(200),in dt1 varchar(200),in courseId1 integer,in semester1 integer,in branch1 varchar(200))
+begin
+declare mxid integer;
+declare cnt integer;
+declare subNm varchar(200);
+set subNm=(select subName from subjects where subId=subId1);
+set mxid=(select ifnull(max(allocationId),1000) from suballocation);
+set mxid=mxid+1;
+set cnt=(select count(*) from suballocation where subId=subId1);
+if cnt>0 then
+	update suballocation set staffUserid=userid, dt=dt1 where subId=subId1;
+else 
+	insert into suballocation values(mxid,subId1,subNm,userid,dt1,branch1,courseId1,semester1);  
+end if;
+end$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE    PROCEDURE `insertSubjects`(in subName1 varchar(200),in branch1 varchar(200),in sem integer,in courseid1 integer)
+begin
+declare mxid integer;
+declare courseNm varchar(200);
+set courseNm=(select courseName from courses where courseId=courseid1);
+set mxid=(select ifnull(max(subId),1000) from subjects);
+set mxid=mxid+1;
+insert into subjects values(mxid,subName1,sem,branch1,courseNm);  
+
+end$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE    PROCEDURE `updateLoginSts`(in userid1 varchar(200))
+begin
+ update loggedInUsers set sts='loggedOut' where userid=userid1 ;
+end$$
+DELIMITER ;
